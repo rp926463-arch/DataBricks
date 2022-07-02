@@ -1,0 +1,19 @@
+Why ETL is hard
+1. Various sources/formats
+2. Schema mismatch
+3. Differant representation
+4. corrupted files and data
+1)Skip Corrupt files(in case of parquet files)
+--will give error java.io.IOException:Unexpected end of input stream
+spark.sql.ignoreCorruptFiles = true
+--this will continue to run even when it encounters corrupt files. The content that have been read will still be returned.
+
+2)Skeep Corrupt records(TextFile formats )
+JSON,CSV support 3 differant parseModes
+1_PERMISSIVE
+2_DROPMALFORMED
+3_FAILFAST
+
+5. Scalability
+6. Schema evolution
+7. Continous ETL

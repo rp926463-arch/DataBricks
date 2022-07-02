@@ -1,0 +1,10 @@
+https://medium.com/@22.gautam/tips-on-cracking-the-databricks-spark-developer-certification-ba40672a4a2
+
+https://docs.microsoft.com/en-us/azure/databricks/getting-started/training-faq
+
+
+
+Udemy : Databricks Certified Developer for Spark 3.0 Practice Exams
+________________________________________________________________________
+BLINKDB
+Tachyon

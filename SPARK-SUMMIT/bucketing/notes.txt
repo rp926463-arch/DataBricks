@@ -1,0 +1,49 @@
+Why Bucketing
+--Every join involves shuffle + sort + merge
+Now e.g. you have 3 tables Students, Deparments, Projects
+Query 1: Student join Department on StudentID
+Query 2: Student join Projects on StudentID
+
+Now we are doing shuffle & sort for student table twice, This is the place where bucketing comes into picture.
+
+Bucketing = pre-(shuffle + sort) input on join keys
+
+So the trade-off here is that instead of shuffling over and over again you can pre-shuffle & sort the data once so that any downstream pipelines which are consuming this table do not have to shuffle & they run quite faster.
+
+So, Why not use bucketing everywhere?
+--Not optimised for all cases.
+let's find out the patterns where making use of bucketing make sense
+1)Example we have used above where tables used frequently in joins with same key(in case of Dimension tables).
+
+2)When you have to do daily cumulative loading of tables
+--Join between delta table(received in daily batch) and base table 
+in this case both base & delta tables could be bucketed on common column.
+
+3)Indexing capability
+--if you are looking for particular student you can hash on studentID find out which bucket record belong to & if you are using sorting you can do binary search on that file & find out desired row.
+
+Creation of bucketed table
+1.using DataFrame API
+df.write
+  .bucketBy(numBuckets, "col1",...)
+  .sortBy("col1",...)
+  .saveAsTable("bucketed_table")
+
+2.via SQL statement
+CREATE TABLE bucketed_table(
+	col1,
+	....
+) USING parquet
+CLUSTERED BY (col1, ...)
+SORTED BY (col1, ...)  
+INTO 'n' BUCKETS
+
+
+NOTE : Expect at least 2-5x gains after bucketing input tables for join
+
+Facebook::
+ideal bucket size 1/2 GB
+max bucket used to create 32000
+whenever you do partitioning try to keep no. of partition less than 100
+
+   
