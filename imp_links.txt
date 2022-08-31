@@ -8,3 +8,6 @@ Udemy : Databricks Certified Developer for Spark 3.0 Practice Exams
 ________________________________________________________________________
 BLINKDB
 Tachyon
+
+Run databricks job using rest call:
+https://www.mssqltips.com/sqlservertip/6650/execute-databricks-jobs-via-rest-api-in-postman/
