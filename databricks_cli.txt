@@ -1,0 +1,80 @@
+As a team lead, you might want to create different scopes for Azure Resource1 and Resource2 and then provide different subgroups in your team access to those scopes. You should consider how to achieve this using the different scope types:
+
+Type 1:
+If you use a Databricks-backed scope and add the secrets in those two scopes, they will be different secrets (Resource1 in scope 1, and Resource2 in scope 2).
+
+Type 2:
+If you use an Azure Key Vault-backed scope with each scope referencing a different Azure Key Vault and add your secrets to those two Azure Key Vaults, they will be different sets of secrets (Azure Synapse Analytics ones in scope 1, and Azure Blob storage in scope 2). These will work like Databricks-backed scopes.
+
+Type 3:
+If you use two Azure Key Vault-backed scopes with both scopes referencing the same Azure Key Vault and add your secrets to that Azure Key Vault, all Resource1 and Resource2 secrets will be available. Since ACLs are at the scope level, all members across the two subgroups will see all secrets. This arrangement does not satisfy your use case of restricting access to a set of secrets to each group.
+
+
+
+Sometimes accessing data requires that you authenticate to external data sources through JDBC. Instead of directly entering your credentials into a notebook, use Databricks secrets to store your credentials and reference them in notebooks and jobs. To manage secrets, you can use the Databricks CLI to access the Secrets API 2.0.
+
+
+pip install databricks-cli
+
+pip install databricks-cli --upgrade
+
+--Check installation
+databricks --version
+
+==>To use az commands you will need Azure CLI installed on your system 
+--Get Access token
+az login
+
+az account get-access-token  --resource 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d
+	-->resource option to specify the unique resource ID for the Azure Databricks service, which is 2ff814a6-3304-4ab8-85cb-cd0e6f879c1d
+
+databricks configure --token
+Host : https://adb-7810070864704650.10.azuredatabricks.net
+Token : from above step
+
+-->After this your credentials will be stored in this file %USERPROFILE%\.databrickscfg
+cat %USERPROFILE%\.databrickscfg
+
+--Test Authentication setup
+databricks workspace ls /Users/roshanpatil1703@gmail.com
+
+--List secret scopes
+databricks secrets list-scopes
+
+--List secrets under scope
+databricks secrets list --scope TEST-AKV-SCOPE
+
+--CLI command hep for secrets
+databricks secrets --help
+
+-Create Scopes
+databricks secrets create-scope --help
+
+--Use the Databricks CLI to create an DataBricks-backed secret scope
+databricks secrets create-scope --scope TEST-DB-SCOPE --initial-manage-principal "users"
+
+--Use the Databricks CLI to create an Azure Key Vault-backed secret scope
+databricks secrets create-scope --scope TEST-AKV-SCOPE --scope-backend-type AZURE_KEYVAULT --resource-id /subscriptions/ea4fdd72-e1f6-4daa-bb58-de9e6f6947e7/resourceGroups/databricks-course-rg/providers/Microsoft.KeyVault/vaults/databricks-key-vault199 --dns-name https://databricks-key-vault199.vault.azure.net/  --initial-manage-principal "users" --debug
+
+	-->dns-name : Vault URI
+	-->resource-id : key-vault >> settings >> properties >> Resource ID
+
+--Create secret under databricks backed scope
+databricks secrets put --scope TEST-DB-SCOPE --key TEST-KEY --string-value "test" --debug
+
+--Delete a secret key from scope
+databricks secrets delete --scope TEST-DB-SCOPE --key TEST-KEY
+
+--Delete a secret scope
+databricks secrets delete-scope --scope TEST-DB-SCOPE
+
+==>Azure Key Vault-backed secret scope is a read-only interface to the Key Vault, the PutSecret and DeleteSecret Secrets API 2.0 operations are not allowed. To manage secrets in Azure Key Vault, you must use the Azure SetSecret REST API or Azure portal UI.
+
+--Put secret in AKV
+az keyvault secret set --name TEST-SECRET --vault-name databricks-key-vault199 --value "test"
+
+--delete secret from AKV
+az keyvault secret delete --name TEST-SECRET --vault-name databricks-key-vault199
+
+
+
